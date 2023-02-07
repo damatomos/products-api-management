@@ -8,7 +8,7 @@ import { FirebaseRepositoryException } from 'src/core/exceptions/firebase_reposi
 import { FirebaseService } from 'src/core/firebase/firebase.service';
 
 @Injectable()
-export class FirebaseRepository<T extends Model> {
+export class FirebaseRepository<T extends Model | Partial<T>> {
   private db: CollectionReference<DocumentData>;
 
   constructor(private readonly firebaseService: FirebaseService) {}
@@ -17,18 +17,20 @@ export class FirebaseRepository<T extends Model> {
     this.db = this.firebaseService.getDatabaseCollection(collection);
   }
 
-  async create(data: T) {
-    if (!this.db) throw new FirebaseRepositoryException('Model collectio not initialized!');
+  async create(data: T): Promise<any> {
+    if (!this.db)
+      throw new FirebaseRepositoryException('Model collectio not initialized!');
     try {
-      await this.db.doc().set(data);
+      return await this.db.doc().set(data);
     } catch (err) {
       console.log(err);
       throw new BadRequestException(err);
     }
   }
 
-  async find(where: {} = {}) {
-    if (!this.db) throw new FirebaseRepositoryException('Model collectio not initialized!');
+  async find(where: {} = {}): Promise<T[] | any[]> {
+    if (!this.db)
+      throw new FirebaseRepositoryException('Model collectio not initialized!');
     const whereVector = Object.keys(where);
 
     try {
@@ -51,8 +53,9 @@ export class FirebaseRepository<T extends Model> {
     }
   }
 
-  async findOne(where: {}) {
-    if (!this.db) throw new FirebaseRepositoryException('Model collectio not initialized!');
+  async findOne(where: {}): Promise<T> {
+    if (!this.db)
+      throw new FirebaseRepositoryException('Model collectio not initialized!');
     const whereVector = Object.keys(where);
     if (whereVector.length == 0) return;
 
@@ -64,41 +67,44 @@ export class FirebaseRepository<T extends Model> {
       const snapshot = await query.get();
 
       const id = snapshot.docs[0].id;
-      return { id, ...snapshot.docs[0].data() };
+      return { id, ...(snapshot.docs[0].data() as T) };
     } catch (err) {
       console.log(err);
       throw new BadRequestException(err);
     }
   }
 
-  async findById(id: string) {
-    if (!this.db) throw new FirebaseRepositoryException('Model collectio not initialized!');
+  async findById(id: string): Promise<T> {
+    if (!this.db)
+      throw new FirebaseRepositoryException('Model collectio not initialized!');
     try {
       const snapshot = await this.db
         .where(FieldPath.documentId(), '==', id)
         .get();
-      return snapshot.docs[0].data();
+      return { id, ...(snapshot.docs[0].data() as T) };
     } catch (err) {
       console.log(err);
       throw new BadRequestException(err);
     }
   }
 
-  async update(id: string, data: T) {
-    if (!this.db) throw new FirebaseRepositoryException('Model collectio not initialized!');
+  async update(id: string, data: T): Promise<any> {
+    if (!this.db)
+      throw new FirebaseRepositoryException('Model collectio not initialized!');
     try {
-      return await this.db.doc(id).update({...data});
+      await this.db.doc(id).update({ ...data });
+      return await this.findById(id);
     } catch (err) {
       throw new BadRequestException(err);
     }
   }
 
-  async remove(id: string) {
-    if (!this.db) throw new FirebaseRepositoryException('Model collectio not initialized!');
+  async remove(id: string): Promise<any> {
+    if (!this.db)
+      throw new FirebaseRepositoryException('Model collectio not initialized!');
     try {
       return await this.db.doc(id).delete();
-    } catch (err)
-    {
+    } catch (err) {
       throw new BadRequestException(err);
     }
   }
