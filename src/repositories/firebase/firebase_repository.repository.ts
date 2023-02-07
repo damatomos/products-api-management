@@ -92,7 +92,8 @@ export class FirebaseRepository<T extends Model | Partial<T>> {
     if (!this.db)
       throw new FirebaseRepositoryException('Model collectio not initialized!');
     try {
-      return await this.db.doc(id).update({ ...data });
+      await this.db.doc(id).update({ ...data });
+      return await this.findById(id);
     } catch (err) {
       throw new BadRequestException(err);
     }
