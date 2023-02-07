@@ -8,7 +8,7 @@ import { FirebaseRepositoryException } from 'src/core/exceptions/firebase_reposi
 import { FirebaseService } from 'src/core/firebase/firebase.service';
 
 @Injectable()
-export class FirebaseRepository<T extends Model> {
+export class FirebaseRepository<T extends Model | Partial<T>> {
   private db: CollectionReference<DocumentData>;
 
   constructor(private readonly firebaseService: FirebaseService) {}
@@ -20,7 +20,7 @@ export class FirebaseRepository<T extends Model> {
   async create(data: T) {
     if (!this.db) throw new FirebaseRepositoryException('Model collectio not initialized!');
     try {
-      await this.db.doc().set(data);
+      return await this.db.doc().set(data);
     } catch (err) {
       console.log(err);
       throw new BadRequestException(err);
