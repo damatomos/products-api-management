@@ -13,7 +13,7 @@ export class FirebaseModule {
 
   constructor()
   {
-    const serviceAccount = require('../../config/serviceAccountKey.json');
+    const serviceAccount = require('../../../config/serviceAccountKey.json');
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
